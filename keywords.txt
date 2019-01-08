@@ -1,0 +1,2 @@
+RotaryEncoder 	KEYWORD1
+Read		KEYWORD2
