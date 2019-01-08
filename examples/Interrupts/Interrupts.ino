@@ -19,7 +19,7 @@ void loop() {
   int8_t pos1 = encoder1.HasChanged();
   int8_t pos2 = encoder2.HasChanged();
   int8_t btn1Pressed = encoder1.GetButtonPressed();
-  int8_t btn2Pressed = encoder1.GetButtonPressed();
+  int8_t btn2Pressed = encoder2.GetButtonPressed();
   
   if(pos1){
     Serial.print("encoder1 changed ");Serial.print(pos1);Serial.println(" steps");
