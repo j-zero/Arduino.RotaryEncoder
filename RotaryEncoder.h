@@ -28,7 +28,7 @@ class RotaryEncoder
       int pin;
       volatile int8_t *val;
       uint8_t *rot;
-      uint32_t *tick;
+      unsigned long tick;
     } IRQHandlerParameters;
 
     typedef struct {
@@ -53,6 +53,7 @@ class RotaryEncoder
     volatile int8_t encoderPos = 0;
     int8_t lastReportedPos = 1;
     uint8_t rotating;
+    unsigned long lastTick;
     IRQHandlerParameters ihp1;
     IRQHandlerParameters ihp2;
     BtnIRQHandlerParameters BtnHp;
