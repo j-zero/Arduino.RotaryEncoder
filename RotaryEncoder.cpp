@@ -93,8 +93,6 @@ void RotaryEncoder::UseInterrupts(){
     ihp2.val = &encoderPos;
     ihp1.rot = &rotating;
     ihp2.rot = &rotating;
-    ihp1.lastTick = &lastTick;
-    ihp1.lastTick = &lastTick;
 
     BtnHp.pin = _pinBtn;
     BtnHp.lastRising = &lastRising;
@@ -115,37 +113,25 @@ void RotaryEncoder::UseInterrupts(){
 
 void RotaryEncoder::IRQPIN1(void *p){
   IRQHandlerParameters *_p = (IRQHandlerParameters *)p;
-  
-  if ( *_p->rot ) {
-    if(!(millis() - *_p->lastTick) > 1)
-     return;
-  }
   if( gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderA_set ) {
     RotaryEncoderA_set = !RotaryEncoderA_set;
     if ( RotaryEncoderA_set && !RotaryEncoderB_set ) {
-      *_p->val += 1;
+        *_p->val += 1;
     }
     *_p->rot = false;  // no more debouncing until loop() hits again
-    
   }
-  *_p->lastTick = millis();
 }
 
 void RotaryEncoder::IRQPIN2(void *p){
   IRQHandlerParameters *_p = (IRQHandlerParameters *)p;
-  if ( *_p->rot ) {
-    if(!(millis() - *_p->lastTick) > 1)
-     return;
-  }
   if( gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderB_set ) {
     RotaryEncoderB_set = !RotaryEncoderB_set;
     if( RotaryEncoderB_set && !RotaryEncoderA_set ) {
-      *_p->val -= 1;
+        *_p->val -= 1;
     }
     *_p->rot = false;  // no more debouncing until loop() hits again
     
   }
-  *_p->lastTick = millis();
 }
 
 void RotaryEncoder::IRQBTN(void* p){
