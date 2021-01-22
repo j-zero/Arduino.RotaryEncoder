@@ -13,6 +13,7 @@ class RotaryEncoder
   public:
     RotaryEncoder(int PIN1, int PIN2, int PINBTN);
     int8_t Read();
+    int8_t ReadAB(int,int);
     void UseInterrupts();
     void PrintEncoderPosition();
     int8_t GetEncoderValue();
@@ -28,6 +29,7 @@ class RotaryEncoder
       int pin;
       volatile int8_t *val;
       uint8_t *rot;
+      volatile uint32_t *tick;
     } IRQHandlerParameters;
 
     typedef struct {
@@ -47,6 +49,7 @@ class RotaryEncoder
     uint8_t prevNextCode = 0;
     uint16_t store=0;
     static void IRQPIN1(void* p);
+
     static void IRQPIN2(void* p);
     static void IRQBTN(void* p);
     volatile int8_t encoderPos = 0;
