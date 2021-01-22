@@ -55,6 +55,7 @@ class RotaryEncoder
     volatile int8_t encoderPos = 0;
     int8_t lastReportedPos = 1;
     uint8_t rotating;
+    uint32_t lastTick;
     IRQHandlerParameters ihp1;
     IRQHandlerParameters ihp2;
     BtnIRQHandlerParameters BtnHp;

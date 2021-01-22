@@ -8,7 +8,7 @@
 
 static int8_t rot_enc_table[] = {0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0};
 
-uint8_t debounceTime = 100;
+uint8_t debounceTime = 1;
 boolean RotaryEncoderA_set = false;            
 boolean RotaryEncoderB_set = false;
 //volatile uint32_t lastTick = 0;
@@ -112,6 +112,8 @@ void RotaryEncoder::UseInterrupts(){
     ihp2.val = &encoderPos;
     ihp1.rot = &rotating;
     ihp2.rot = &rotating;
+    ihp1.tick = &lastTick;
+    ihp2.tick = &lastTick;
     
     BtnHp.pin = _pinBtn;
     BtnHp.lastRising = &lastRising;
