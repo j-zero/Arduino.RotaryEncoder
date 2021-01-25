@@ -16,10 +16,11 @@ void setup() {
 }
 
 void loop() {
-  int8_t pos1 = encoder1.HasChanged();
-  int8_t pos2 = encoder2.HasChanged();
-  int8_t btn1Pressed = encoder1.GetButtonPressed();
-  int8_t btn2Pressed = encoder2.GetButtonPressed();
+  int8_t pos1 = encoder1.HasEncoderChanged();
+  int8_t pos2 = encoder2.HasEncoderChanged();
+  int8_t btn1Pressed = encoder1.HasButtonChanged();
+  int8_t btn2Pressed = encoder2.HasButtonChanged();
+  uint32_t btnTime = 0;
   
   if(pos1){
     Serial.print("encoder1 changed ");Serial.print(pos1);Serial.println(" steps");
@@ -28,10 +29,18 @@ void loop() {
     Serial.print("encoder2 changed ");Serial.print(pos2);Serial.println(" steps");
   }
   if(btn1Pressed){
-    Serial.print("encoder1 pressed ");Serial.print(encoder1.GetButtonPressedTime());Serial.println(" millis");
+    Serial.println("button1 changed");
+    Serial.print  (" button down  : "); Serial.println(encoder1.GetButtonDown());
+    Serial.print  (" button up    : "); Serial.println(encoder1.GetButtonUp());
+    Serial.print  (" is pressing  : "); Serial.println(encoder1.GetButtonIsPressing());
+    Serial.print  (" hold time    : "); Serial.print(encoder1.GetButtonPressedTime()); Serial.println(" millis");
   }
   if(btn2Pressed){
-    Serial.print("encoder2 pressed ");Serial.print(encoder2.GetButtonPressedTime());Serial.println(" millis");
+    Serial.println("button2 changed");
+    Serial.print  (" button down  : "); Serial.println(encoder2.GetButtonDown());
+    Serial.print  (" button up    : "); Serial.println(encoder2.GetButtonUp());
+    Serial.print  (" is pressing  : "); Serial.println(encoder2.GetButtonIsPressing());
+    Serial.print  (" hold time    : "); Serial.print(encoder2.GetButtonPressedTime()); Serial.println(" millis");
   }
-  delay(200);   
+  delay(20);   
 }

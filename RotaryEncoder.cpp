@@ -13,7 +13,7 @@ boolean RotaryEncoderA_set = false;
 boolean RotaryEncoderB_set = false;
 
 uint8_t DEBOUNCE_TIME_ENCODER = 1;
-uint8_t DEBOUNCE_TIME_BUTTON = 20;
+uint16_t DEBOUNCE_TIME_BUTTON  = 5;
 
 RotaryEncoder::RotaryEncoder(int PIN1, int PIN2, int PINBTN)
 {
@@ -24,6 +24,7 @@ RotaryEncoder::RotaryEncoder(int PIN1, int PIN2, int PINBTN)
   _pin2 = PIN2;
   _pinBtn = PINBTN;
   buttonIsPressing = 0;
+  fallTime = millis();
 } 
 
 int8_t RotaryEncoder::Read() {
@@ -47,7 +48,7 @@ int8_t RotaryEncoder::Read() {
    }
 }
 
-int8_t RotaryEncoder::HasChanged(){
+int8_t RotaryEncoder::HasEncoderChanged(){
   int8_t result = 0;
   if (lastReportedPos != encoderPos) {
        result = encoderPos - lastReportedPos;
@@ -60,10 +61,19 @@ int8_t RotaryEncoder::GetEncoderValue(){
   return encoderPos;
 }
 
-uint8_t RotaryEncoder::GetButtonPressed(){
-  int8_t result = buttonPressed;
-  buttonPressed = 0;
+uint8_t RotaryEncoder::HasButtonChanged(){
+  int8_t result = buttonChanged;
+  buttonChanged = 0;
   return result;
+}
+
+
+uint8_t RotaryEncoder::GetButtonDown(){
+  return GetButtonIsPressing();
+}
+
+uint8_t RotaryEncoder::GetButtonUp(){
+  return !GetButtonIsPressing();
 }
 
 uint8_t RotaryEncoder::GetButtonIsPressing(){
@@ -79,23 +89,24 @@ uint32_t RotaryEncoder::GetButtonPressedTime(){
     }
 }
 
+
 void RotaryEncoder::UseInterrupts(){
     useInterrupts = 1;
     
     ihp1.pin = _pin1;
+    ihp1.p_val = &encoderPos;
+    ihp1.p_tick = &lastTick;
+
     ihp2.pin = _pin2;
-    ihp1.val = &encoderPos;
-    ihp2.val = &encoderPos;
-    ihp1.tick = &lastTick;
-    ihp2.tick = &lastTick;
-    
+    ihp2.p_val = &encoderPos;
+    ihp2.p_tick = &lastTick;
+
     btnhp.pin = _pinBtn;
-    btnhp.lastRising = &lastRising;
-    btnhp.riseTime = &riseTime;
-    btnhp.fallTime = &fallTime;
-    btnhp.dblClickTime = &dblClickTime;
-    btnhp.buttonPressed = &buttonPressed;
-    btnhp.buttonIsPressing = &buttonIsPressing;
+    btnhp.p_lastRising = &lastRising;
+    btnhp.p_riseTime = &riseTime;
+    btnhp.p_fallTime = &fallTime;
+    btnhp.p_buttonChanged = &buttonChanged;
+    btnhp.p_buttonIsPressing = &buttonIsPressing;
 
     attachInterrupt(_pin1,IRQPIN1,(void*)&ihp1,CHANGE);
     attachInterrupt(_pin2,IRQPIN2,(void*)&ihp2,CHANGE);
@@ -104,29 +115,32 @@ void RotaryEncoder::UseInterrupts(){
 
 
 void RotaryEncoder::IRQPIN1(void *p){
+
   IRQHandlerParameters *_p = (IRQHandlerParameters *)p;
-  if((millis() - *_p->tick) > DEBOUNCE_TIME_ENCODER){
+
+  if((millis() - *_p->p_tick) > DEBOUNCE_TIME_ENCODER){
     if(gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderA_set ) {
       RotaryEncoderA_set = !RotaryEncoderA_set;
       if ( RotaryEncoderA_set && !RotaryEncoderB_set ) {
-          *_p->val += 1;
+          *_p->p_val += 1;
       }
     }
-    *_p->tick = millis();
+  *_p->p_tick = millis();
   }
 }
 
 void RotaryEncoder::IRQPIN2(void *p){
 
   IRQHandlerParameters *_p = (IRQHandlerParameters *)p;
-  if((millis() - *_p->tick) > DEBOUNCE_TIME_ENCODER){
+
+  if((millis() - *_p->p_tick) > DEBOUNCE_TIME_ENCODER){
     if(gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderB_set ) {
       RotaryEncoderB_set = !RotaryEncoderB_set;
       if( RotaryEncoderB_set && !RotaryEncoderA_set ) {
-          *_p->val -= 1;
+          *_p->p_val -= 1;
       }
     }
-  *_p->tick = millis();
+  *_p->p_tick = millis();
   }
 }
 
@@ -134,30 +148,22 @@ void RotaryEncoder::IRQBTN(void* p){
 
   BtnIRQHandlerParameters *_p = (BtnIRQHandlerParameters *)p;
 
-    if((millis() - *_p->lastRising) > DEBOUNCE_TIME_BUTTON){
-    /*
-      int c = gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit);
-      I HAVE NO IDEA WHY digitalRead(1) works, but gpio_bit doesn't!
-      gpio_bit returns low every time!
-    */
-    int c = digitalRead(_p->pin);
+  if((millis() - *_p->p_lastRising) > DEBOUNCE_TIME_BUTTON){
+
+    uint32_t c = gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) ? HIGH : LOW;
 
     if(c == LOW){ // RISING, PULLUP!
-      *_p->riseTime = millis();
-      *_p->buttonIsPressing = 1;
-      *_p->buttonPressed = 1;
-      if(*_p->dblClickTime != 0 && *_p->riseTime > *_p->dblClickTime && (*_p->riseTime - *_p->dblClickTime) < 200)
-        *_p->buttonPressed = 2;
+      *_p->p_riseTime = millis();
+      *_p->p_buttonIsPressing = 1;
+      *_p->p_buttonChanged = 1;
     }
 
     else if(c == HIGH){  // FALLING, PULLUP!
-      *_p->fallTime = millis();
-      *_p->dblClickTime = millis();
-      *_p->buttonPressed = 1;
-      *_p->buttonIsPressing = 0;
+      *_p->p_fallTime = millis();
+      *_p->p_buttonChanged = 1;
+      *_p->p_buttonIsPressing = 0;
     }
     
-      *_p->lastRising=millis();
   }
 
 }

@@ -16,37 +16,43 @@ class RotaryEncoder
     int8_t Read();
 
     int8_t GetEncoderValue();
-    int8_t HasChanged();
 
-    uint8_t GetButtonPressed();
+    uint8_t HasButtonChanged();
+    int8_t  HasEncoderChanged();
+
+
     uint8_t GetButtonIsPressing();
     uint32_t GetButtonPressedTime();
+    uint8_t GetButtonPressedCount();
+    uint8_t GetButtonDown();
+    uint8_t GetButtonUp();
 
   private:
     typedef struct {
-      int8_t pin;
-      volatile int8_t *val;
-      volatile uint32_t *tick;
+      uint8_t pin;
+      volatile int8_t *p_val;
+      volatile uint32_t *p_tick;
     } IRQHandlerParameters;
 
     typedef struct {
-      int8_t pin;
-      volatile uint32_t *lastRising = 0, *riseTime = 0, *fallTime = 0, *dblClickTime = 0;
-      uint8_t *buttonPressed = 0, *buttonIsPressing = 0;
+      uint8_t pin;
+      volatile uint32_t *p_lastRising = 0, *p_riseTime = 0, *p_fallTime = 0;
+      uint8_t *p_buttonChanged = 0, *p_buttonIsPressing = 0;
     } BtnIRQHandlerParameters;
 
 
-    int8_t _pin1;
-    int8_t _pin2;
-    int8_t _pinBtn;
+    uint8_t _pin1;
+    uint8_t _pin2;
+    uint8_t _pinBtn;
 
     uint8_t useInterrupts = 0;
     uint8_t prevNextCode = 0;
     uint16_t store=0;
+    
     static void IRQPIN1(void* p);
-
     static void IRQPIN2(void* p);
     static void IRQBTN(void* p);
+
     volatile int8_t encoderPos = 0;
     int8_t lastReportedPos = 1;
     uint8_t rotating;
@@ -56,8 +62,8 @@ class RotaryEncoder
     IRQHandlerParameters ihp2;
     BtnIRQHandlerParameters btnhp;
 
-    volatile uint32_t lastRising = 0, riseTime = 0, fallTime = 0, dblClickTime = 0;
-    uint8_t buttonPressed = 0, buttonIsPressing = 0;
+    volatile uint32_t lastRising = 0, riseTime = 0, fallTime = 0;
+    uint8_t buttonChanged = 0, buttonIsPressing = 0;
 
 };
 
