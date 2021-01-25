@@ -117,14 +117,13 @@ void RotaryEncoder::UseInterrupts(){
 void RotaryEncoder::IRQPIN1(void *p){
 
   IRQHandlerParameters *_p = (IRQHandlerParameters *)p;
-
-  if((millis() - *_p->p_tick) > DEBOUNCE_TIME_ENCODER){
-    if(gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderA_set ) {
+    if(gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderA_set) {
       RotaryEncoderA_set = !RotaryEncoderA_set;
       if ( RotaryEncoderA_set && !RotaryEncoderB_set ) {
+        if((millis() - *_p->p_tick) > DEBOUNCE_TIME_ENCODER){
           *_p->p_val += 1;
+        }
       }
-    }
   *_p->p_tick = millis();
   }
 }
@@ -132,14 +131,13 @@ void RotaryEncoder::IRQPIN1(void *p){
 void RotaryEncoder::IRQPIN2(void *p){
 
   IRQHandlerParameters *_p = (IRQHandlerParameters *)p;
-
-  if((millis() - *_p->p_tick) > DEBOUNCE_TIME_ENCODER){
-    if(gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderB_set ) {
+    if(gpio_read_bit(PIN_MAP[_p->pin].gpio_device, PIN_MAP[_p->pin].gpio_bit) != RotaryEncoderB_set) {
       RotaryEncoderB_set = !RotaryEncoderB_set;
       if( RotaryEncoderB_set && !RotaryEncoderA_set ) {
+        if((millis() - *_p->p_tick) > DEBOUNCE_TIME_ENCODER){
           *_p->p_val -= 1;
+        }
       }
-    }
   *_p->p_tick = millis();
   }
 }
